@@ -1,0 +1,54 @@
+<!-- add_cliente.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Agregar Producto</title>
+</head>
+<body>
+    <<!-- add_cliente.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ingresar Producto</title>
+</head>
+<body>
+    <h2>Ingresar Producto</h2>
+    <form method="POST" >
+        {% csrf_token %}
+        <label for="nombre">Nombre:</label>
+        <input type="text" name="nombre" value="{{ datos.nombre|default:'' }}" required><br>
+
+        <label for="descripcion">Descripción:</label>
+        <input type="text" name="descripcion" value="{{ datos.descripcion|default:'' }}" required><br>
+
+        <label for="categoria">Categoría:</label>
+        <select name="categoria" id="categoria" required>
+            <option value="Herramientas Manuales">Herramientas Manuales</option>
+            <option value="Materiales Básicos">Materiales Básicos</option>
+            <option value="Equipos de Seguridad">Equipos de Seguridad</option>
+            <option value="Tornillos y Anlacjes">Tornillos y Anclajes</option>
+            <option value="Fijaciones y Adhesivos">Fijaciones y Adhesivos</option>
+            <option value="Equipos de Medición">Equipos de Medición</option>
+
+        </select>
+        <label for="marca">Marca:</label>
+        <input type="text" name="marca" value="{{ datos.marca|default:'' }}" required><br>
+
+        <label for="precio">Precio:</label>
+        <input type="number" name="precio" min="1" value="{{ datos.precio|default:'' }}" required><br>
+
+        <label for="cantidad">Precio:</label>
+        <input type="number" name="cantidad" min="1" value="{{ datos.cantidad|default:'' }}" required><br>
+        <button type="submit">Ingresar producto</button>
+    </form>
+
+{% if mensaje %}
+    <p style="color:red;">{{ mensaje }}</p>
+{% endif %}
+</body>
+</html>
+
+</body>
+</html>

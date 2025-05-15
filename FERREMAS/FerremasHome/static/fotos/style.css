@@ -1,0 +1,6 @@
+.btn-back {
+      position: fixed; /* queda fijo en la pantalla */
+      top: 20px;
+      left: 20px;
+      z-index: 1050; /* Para que quede sobre otros elementos */
+    }
