@@ -11,8 +11,3 @@ body{
   background-position: center;
   background-repeat: no-repeat;
 }
-
-
-.card-body .btn {
-  margin-top: auto; /* empuja el botón hacia el fondo */
-}

@@ -249,6 +249,8 @@ def herr_manuales(request):
     
     return render(request, 'productos.html', {'productos': productos_dic, 'categoria': categoria})
 
+
+
 def eq_seguridad(request):
     categoria = 'Equipos de Seguridad'
     with connection.cursor() as cursor:
@@ -271,6 +273,8 @@ def eq_seguridad(request):
     
     return render(request, 'productos.html', {'productos': productos_dic, 'categoria': categoria})
 
+
+
 def materiales_basicos(request):
     categoria = 'Materiales Básicos'
     with connection.cursor() as cursor:
@@ -292,6 +296,8 @@ def materiales_basicos(request):
         productos_dic.append(producto)
     
     return render(request, 'productos.html', {'productos': productos_dic, 'categoria': categoria})
+
+
 
 def tor_ancl(request):
     categoria = 'Tornillos y Anclajes'
@@ -338,6 +344,7 @@ def eq_medicion(request):
     return render(request, 'productos.html', {'productos': productos_dic, 'categoria': categoria})
 
 
+
 def adhesivos(request):
     categoria = 'Fijaciones y Adhesivos'
     with connection.cursor() as cursor:
@@ -359,6 +366,7 @@ def adhesivos(request):
         productos_dic.append(producto)
     
     return render(request, 'productos.html', {'productos': productos_dic, 'categoria': categoria})
+
 
 
 def agregar_al_carrito(request, id_producto):
@@ -397,6 +405,7 @@ def agregar_al_carrito(request, id_producto):
     return redirect('home')
 
 
+
 def ver_carrito(request):
     if not request.session.get('usuario_id'):
         return redirect('iniciar_sesion')
@@ -428,6 +437,7 @@ def ver_carrito(request):
     return render(request, 'carrito.html', {'productos': productos, 'total': total})
 
 
+
 def eliminar_del_carrito(request, id_producto):
     if not request.session.get('usuario_id'):
         return redirect('iniciar_sesion')
@@ -443,6 +453,7 @@ def eliminar_del_carrito(request, id_producto):
     return redirect('ver_carrito')
 
 
+
 def modificar_cantidad(request, id_producto):
     if request.method == 'POST' and request.session.get('usuario_id'):
         id_usuario = request.session['usuario_id']
@@ -455,3 +466,34 @@ def modificar_cantidad(request, id_producto):
             """, [cantidad, id_usuario, id_producto])
 
     return redirect('ver_carrito')
+
+def checkout(request):
+    if request.session.get('admin_id'):
+        return redirect('home')
+    return render(request, 'entrega_pago.html')
+
+
+def perfil(request):
+    if not request.session.get('usuario_id'):
+        return redirect('iniciar_sesion')
+
+    id_usuario = request.session.get('usuario_id')
+
+    with connection.cursor() as cursor:
+        cursor.execute("""SELECT CONCAT(pnombre, ' ', snombre, ' ', apaterno, ' ', amaterno) AS nombre,
+                            rut,
+                            correo
+                        FROM usuario WHERE id_usuario = %s""", [id_usuario])
+        datos = cursor.fetchone()
+
+    if datos:
+        datos_dic = {
+            'nombre': datos[0],
+            'rut': datos[1],
+            'correo': datos[2]
+
+        }
+    else: 
+        datos_dic = {}
+
+    return render(request, 'perfil.html', {'d': datos_dic})

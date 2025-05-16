@@ -1,0 +1,39 @@
+{% extends 'navbar.html' %}
+{% load static %}
+{% block body %}
+
+
+<div class="container mt-5 pb-5 padding-bottom: 3rem;">
+    <br>
+    <br>
+    <h2 class="mb-5" style="text-align: center;">Mi Perfil de Usuario</h2>
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <h5 class="card-title" style="text-align: center;"> Datos Personales</h5>
+                    <hr>
+                    <p class="card-text"><b>Nombre Completo: {{d.nombre}}</b></p>
+                    <p class="card-text"><b>R.U.T: {{d.rut}}</b></p>
+                    <p class="card-text"><b>Correo Electrónico: {{d.correo}}</b></p>
+                    <hr>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <h5 class="card-title" style="text-align: center;">Pedidos realizados</h5>
+                    <hr>
+                    <p class="card-text"><b></b></p>
+                    <p class="card-text"><b></b></p>
+                    <p class="card-text"><b></b></p>
+                    <hr>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+{% endblock %}
