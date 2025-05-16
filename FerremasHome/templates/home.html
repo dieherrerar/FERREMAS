@@ -1,0 +1,54 @@
+{% extends 'navbar.html' %}
+{% load static %}
+{% block body %}
+
+    <div class="container mt-5 mb-5 padding-bottom: 3rem;">
+    <form class="d-flex justify-content-center" role="search">
+        <input class="form-control me-2 w-50" type="search" placeholder="Buscar Productos" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Buscar</button>
+    </form>
+    <br>
+    <br>
+    {% if request.session.usuario_id or request.session.admin_id %}
+    <h2 class="mb-5" style="text-align: center;">Bienvenido, {{ nombre }}</h2>
+    {% else %}
+    <h2 class="mb-5" style="text-align: center;">Productos Destacados</h2>
+    {% endif %}
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for producto in productos %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <h5 class="card-title">{{ producto.nombre }}</h5>
+                    <p class="card-text descripcion" title="{{ producto.descripcion }}">{{ producto.descripcion }}</p>
+                    <p class="text-muted">{{ producto.marca }}</p>
+                    <p><strong>${{ producto.precio }}</strong></p>
+                    <p class="text-muted">Quedan {{ producto.cantidad }} unidades</p>
+
+                    <hr>
+                    <p class="card-text">{{ producto.categoria }}</p>
+                    <br>
+                        {% if request.session.admin_id %}
+                        <a href="{% url 'modificar_prod' producto.id_producto %}" class="btn btn-outline-danger w-100">
+                            <i class="bi bi-cart-plus"></i> Modificar Producto
+                        </a>
+                        {% else %}
+                        <form action="{% url 'agregar_al_carrito' producto.id_producto %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-cart-plus"></i> Agregar al carrito
+                            </button>
+                        </form>
+                        {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    </div>
+
+
+
+</body>
+
+{% endblock %}
