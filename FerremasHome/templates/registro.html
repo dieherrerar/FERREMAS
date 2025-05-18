@@ -46,8 +46,16 @@
 
                 <div class="mb-1">
                     <label for="rut" class="form-label">RUT</label>
-                    <input type="text" name="rut" class="form-control" value="{{ datos.rut|default:'' }}" required><br>
+                    <input type="text" name="rut" class="form-control" pattern="^\d{7,8}$" minlength="7" maxlength="8" value="{{ datos.rut|default:'' }}" required inputmode="numeric"><br>
                 </div>
+
+                <div class="mb-1">
+                    <label for="dv" class="form-label">Dígito Verificador (1-9 K-k)</label>
+                    <input type="text" name="dv" class="form-control" pattern="^[0-9Kk]{1}$" maxlength="1" value="{{ datos.dv|default:'' }}" required><br>
+                </div>
+                {% if dv %}
+                    <p style="color:red;">{{ dv }}</p>
+                {% endif %}
 
                 <div class="mb-1">
                     <label for="correo" class="form-label">Correo Electrónico</label>

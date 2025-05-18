@@ -2,6 +2,18 @@ from django.shortcuts import render, redirect
 from django.db import connection, IntegrityError
 import bcrypt
 from django.http import HttpResponse
+import transbank.webpay.webpay_plus
+from transbank.webpay.webpay_plus.transaction import Transaction
+import time
+from django.views.decorators.csrf import csrf_exempt
+from .webpay_config import get_webpay_transaction
+from django.urls import reverse
+
+
+
+
+
+
 
 def add_cliente(request):
     if request.method == 'POST':
@@ -10,6 +22,7 @@ def add_cliente(request):
         apaterno = request.POST.get('apaterno')
         amaterno = request.POST.get('amaterno')
         rut = request.POST.get('rut')
+        dv = request.POST.get('dv')
         correo = request.POST.get('correo')
         contrasena = request.POST.get('contrasena')
         contrasena2 = request.POST.get('contrasena2')
@@ -20,39 +33,43 @@ def add_cliente(request):
             'apaterno': apaterno,
             'amaterno': amaterno,
             'rut': rut,
+            'dv': dv,
             'correo': correo,
         }
 
 
-        if pnombre=="" or snombre=="" or apaterno=="" or amaterno=="" or rut=="" or correo=="" or contrasena=="" or contrasena2=="":
+        if pnombre=="" or snombre=="" or apaterno=="" or amaterno=="" or rut=="" or correo=="" or contrasena=="" or contrasena2=="" or dv=="":
             return render(request, 'registro.html', {'mensaje': 'Ningún campo debe estar vacío', 'datos': datos_formulario})
-        else: 
+        else:
             if contrasena == contrasena2:
                 if contrasena and contrasena2 and (len(contrasena) < 8 or len(contrasena) > 25 or len(contrasena2) < 8 or len(contrasena2) > 25):
                     return render(request, 'registro.html', {'mensaje': 'Las contraseñas deben tener minimo 8 caracteres y máximo 25', 'datos': datos_formulario})
                 else: 
-                    with connection.cursor() as cursor:
-                        cursor.execute('SELECT COUNT(*) FROM usuario WHERE rut = %s', [rut])
-                        rut_existe = cursor.fetchone()[0]
+                    if dv in '1234567890Kk': 
+                        with connection.cursor() as cursor:
+                            cursor.execute('SELECT COUNT(*) FROM usuario WHERE rut = %s', [rut])
+                            rut_existe = cursor.fetchone()[0]
 
-                        cursor.execute('SELECT COUNT(*) FROM usuario WHERE correo = %s', [correo] )
-                        correo_existe = cursor.fetchone()[0]
+                            cursor.execute('SELECT COUNT(*) FROM usuario WHERE correo = %s', [correo] )
+                            correo_existe = cursor.fetchone()[0]
+                        if rut_existe == 0 and correo_existe == 0:
+                            hashed_pw = bcrypt.hashpw(contrasena.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                            rut_int = int(rut)
+                            try: 
+                                with connection.cursor() as cursor:
+                                    sql = """
+                                        INSERT INTO usuario (pnombre, snombre, apaterno, amaterno, rut, correo, contrasena, dv)
+                                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                                    """
+                                    cursor.execute(sql, [pnombre, snombre, apaterno, amaterno, rut_int, correo, hashed_pw, dv])
                     
-                    if rut_existe == 0 and correo_existe == 0:
-                        hashed_pw = bcrypt.hashpw(contrasena.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-                        try: 
-                            with connection.cursor() as cursor:
-                                sql = """
-                                    INSERT INTO usuario (pnombre, snombre, apaterno, amaterno, rut, correo, contrasena)
-                                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                                """
-                                cursor.execute(sql, [pnombre, snombre, apaterno, amaterno, rut, correo, hashed_pw])
-                
-                            return redirect('home')
-                        except IntegrityError as e:
-                            return render(request, 'registro.html', {'mensaje': 'Error al registrar el cliente, por favor intente de nuevo', 'datos': datos_formulario})
+                                return redirect('home')
+                            except IntegrityError as e:
+                                return render(request, 'registro.html', {'mensaje': 'Error al registrar el cliente, por favor intente de nuevo', 'datos': datos_formulario})
+                        else:
+                            return render(request, 'registro.html', {'mensaje':'El RUT o el correo ya se encuentran registrados', 'datos': datos_formulario})
                     else:
-                        return render(request, 'registro.html', {'mensaje':'El RUT o el correo ya se encuentran registrados', 'datos': datos_formulario})
+                        return render(request, 'registro.html', {'dv':'El dígito verificador debe ser del 0 al 9 o letra k', 'datos': datos_formulario})
 
             else:
                 return render(request, 'registro.html', {'mensaje': 'Las contraseñas no coinciden', 'datos': datos_formulario})
@@ -416,7 +433,7 @@ def ver_carrito(request):
 
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT p.nombre, p.precio, c.cantidad, (p.precio * c.cantidad) AS total, p.id_producto
+            SELECT c.id_carrito, p.nombre, p.precio, c.cantidad, (p.precio * c.cantidad) AS total, p.id_producto
             FROM carrito c
             JOIN producto p ON p.id_producto = c.id_producto
             WHERE c.id_usuario = %s
@@ -426,13 +443,16 @@ def ver_carrito(request):
 
         for p in productoss:
             productos.append({
-                'nombre': p[0],
-                'precio': p[1],
-                'cantidad': p[2],
-                'subtotal': p[3],
-                'id_producto': p[4]
+                'nombre': p[1],
+                'precio': p[2],
+                'cantidad': p[3],
+                'subtotal': p[4],
+                'id_producto': p[5]
             })
-            total += p[3]
+            total += p[4]
+        
+        if productos:
+            request.session['carrito_id'] = productos[0]
 
     return render(request, 'carrito.html', {'productos': productos, 'total': total})
 
@@ -467,10 +487,29 @@ def modificar_cantidad(request, id_producto):
 
     return redirect('ver_carrito')
 
+
+
 def checkout(request):
     if request.session.get('admin_id'):
         return redirect('home')
-    return render(request, 'entrega_pago.html')
+    elif not request.session.get('usuario_id'):
+        return redirect('iniciar_sesion')
+    else: 
+        id_usuario = request.session['usuario_id']
+        productos = []
+
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                    SELECT SUM(p.precio * c.cantidad) 
+                    FROM carrito c
+                    JOIN producto p ON p.id_producto = c.id_producto
+                    WHERE c.id_usuario = %s
+                """, [id_usuario])
+            total = cursor.fetchone()[0]
+
+
+    return render(request, 'entrega_pago.html', {'total': total})
+
 
 
 def perfil(request):
@@ -481,7 +520,7 @@ def perfil(request):
 
     with connection.cursor() as cursor:
         cursor.execute("""SELECT CONCAT(pnombre, ' ', snombre, ' ', apaterno, ' ', amaterno) AS nombre,
-                            rut,
+                            CONCAT(REPLACE(FORMAT(rut, 0), ',', '.'), '-', dv) AS rut,
                             correo
                         FROM usuario WHERE id_usuario = %s""", [id_usuario])
         datos = cursor.fetchone()
@@ -497,3 +536,67 @@ def perfil(request):
         datos_dic = {}
 
     return render(request, 'perfil.html', {'d': datos_dic})
+
+
+
+
+def pagar(request):
+    if not request.session.get('usuario_id'):
+        return redirect('iniciar_sesion')
+        
+    usuario_id = request.session.get('usuario_id')
+
+    with connection.cursor() as cursor:
+        cursor.execute("""
+                SELECT SUM(p.precio * c.cantidad) 
+                FROM carrito c
+                JOIN producto p ON p.id_producto = c.id_producto
+                WHERE c.id_usuario = %s
+            """, [usuario_id])
+        total = cursor.fetchone()[0]
+    
+    if not total:
+        total = 0
+
+    
+    transaction = get_webpay_transaction()
+
+    url_return = request.build_absolute_uri(reverse('resultado_pago'))
+
+    response = transaction.create(
+        buy_order=f'orden_{usuario_id}_{int(time.time())}',
+        session_id=str(usuario_id),
+        amount=total,
+        return_url=url_return
+    )
+
+    return render(request, 'webpay_pago.html', {
+        'url_pago': response['url'],
+        'token': response['token'],
+    })
+
+
+
+@csrf_exempt
+def resultado_pago(request):
+    token_ws = request.POST.get('token_ws') or request.GET.get('token_ws')
+    if not token_ws:
+        return render(request, 'entrega_pago.html',{'mensaje': f'Error procesando pago. Intente nuevamente más tarde'} )
+
+    transaction = get_webpay_transaction()
+
+    try:
+        resultado = transaction.commit(token_ws)
+        status = resultado['status']
+
+        if status == 'AUTHORIZED':
+            id_usuario = request.session.get('usuario_id')
+
+            with connection.cursor() as cursor:
+                cursor.execute("DELETE FROM carrito WHERE id_usuario = %s", [id_usuario])
+            
+            return render(request, 'resultado_pago.html', {'resultado': resultado})
+        else: 
+            return render(request, 'resultado_pago.html', {'resultado': resultado})
+    except Exception as e:
+        return render(request, 'entrega_pago.html',{'mensaje': f'Error procesando pago: {str(e)}'} )

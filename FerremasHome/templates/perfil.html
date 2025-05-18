@@ -8,19 +8,28 @@
     <br>
     <h2 class="mb-5" style="text-align: center;">Mi Perfil de Usuario</h2>
     <div class="row row-cols-1 row-cols-md-2 g-4">
-        <div class="col">
+        <div class="col-md-4">
             <div class="card h-100 shadow-sm">
                 <div class="card-body d-flex flex-column justify-content-between">
                     <h5 class="card-title" style="text-align: center;"> Datos Personales</h5>
                     <hr>
-                    <p class="card-text"><b>Nombre Completo: {{d.nombre}}</b></p>
-                    <p class="card-text"><b>R.U.T: {{d.rut}}</b></p>
-                    <p class="card-text"><b>Correo Electrónico: {{d.correo}}</b></p>
+                    <div class="mb-1">
+                        <label for="nombre" class="form-label"><b>Nombre completo</b></label>
+                        <p name="nombre" class="form-control"> {{ d.nombre }}</p>
+                    </div>
+                    <div class="mb-1">
+                        <label for="rut" class="form-label"><b>R.U.T</b></label>
+                        <p name="rut" class="form-control"> {{ d.rut }}</p>
+                    </div>
+                    <div class="mb-1">
+                        <label for="correo" class="form-label"><b>Correo Electrónico</b></label>
+                        <p name="correo" class="form-control"> {{ d.correo }}</p>
+                    </div>
                     <hr>
                 </div>
             </div>
         </div>
-        <div class="col">
+        <div class="col-md-8">
             <div class="card h-100 shadow-sm">
                 <div class="card-body d-flex flex-column justify-content-between">
                     <h5 class="card-title" style="text-align: center;">Pedidos realizados</h5>

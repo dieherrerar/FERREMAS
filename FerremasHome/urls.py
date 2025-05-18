@@ -23,6 +23,8 @@ urlpatterns = [
     path('eliminar_prod/<int:id_producto>/', views.eliminar_prod, name='eliminar_prod'),
     path('checkout/', views.checkout, name='checkout'),
     path('perfil/', views.perfil, name='perfil'),
+    path('webpay/', views.pagar, name='webpay'),
+    path('webpay_resultado/', views.resultado_pago, name='resultado_pago'),
 
 
 ]

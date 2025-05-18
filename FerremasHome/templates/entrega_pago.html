@@ -27,7 +27,12 @@
 
             <form method="POST">
                 {% csrf_token %}
+                
+                <div class="mb-3">
+                <label class="form-label"><strong>Total a pagar: ${{total}}</strong></label><br>
+                </div>
 
+                <hr>
                 <div class="mb-3">
                 <label class="form-label"><strong>Método de entrega:</strong></label><br>
                 </div>
@@ -59,7 +64,12 @@
                     <input type="radio" name="pago" value="webpay" id="webpay" checked>
                 </div>
                 <hr>
-                <button type="submit" class="btn btn-primary w-100">Confirmar y Pagar</button>
+                <a href="{% url 'webpay' %}" class="btn btn-outline-secondary w-100">Confirmar y Pagar</a>
+                <br>
+                <br>
+                {% if mensaje %}
+                    <p style="color:red;">{{ mensaje }}</p>
+                 {% endif %}
             </form>
         </div>
     </div>
