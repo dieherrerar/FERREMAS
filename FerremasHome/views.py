@@ -118,13 +118,14 @@ def modificar_prod(request, id_producto):
         categoria = request.POST.get('categoria')
         marca = request.POST.get('marca')
         precio = request.POST.get('precio')
+        cantidad = request.POST.get('cantidad')
 
         with connection.cursor() as cursor:
             cursor.execute("""
                 UPDATE producto
-                SET nombre = %s, descripcion = %s, precio = %s, marca = %s, categoria = %s
+                SET nombre = %s, descripcion = %s, precio = %s, marca = %s, categoria = %s, cantidad = %s
                 WHERE id_producto = %s
-            """, [nombre, descripcion, precio, marca, categoria, id_producto])
+            """, [nombre, descripcion, precio, marca, categoria, cantidad, id_producto ])
         
         return redirect('home')
     
@@ -474,6 +475,7 @@ def eliminar_del_carrito(request, id_producto):
 
 
 
+
 def modificar_cantidad(request, id_producto):
     if request.method == 'POST' and request.session.get('usuario_id'):
         id_usuario = request.session['usuario_id']
@@ -495,8 +497,20 @@ def checkout(request):
     elif not request.session.get('usuario_id'):
         return redirect('iniciar_sesion')
     else: 
+        if request.method == 'POST':
+            metodo_entrega = request.POST.get('entrega')
+
+            if metodo_entrega =='Retiro en tienda':
+                sucursal = request.POST.get('sucursal')
+            else: 
+                sucursal = None
+        
+            request.session['metodo_entrega'] = metodo_entrega
+            request.session['sucursal'] = sucursal
+
+            return redirect('webpay')
+            
         id_usuario = request.session['usuario_id']
-        productos = []
 
         with connection.cursor() as cursor:
             cursor.execute("""
@@ -508,34 +522,77 @@ def checkout(request):
             total = cursor.fetchone()[0]
 
 
-    return render(request, 'entrega_pago.html', {'total': total})
+        return render(request, 'entrega_pago.html', {'total': total})
+
+
 
 
 
 def perfil(request):
-    if not request.session.get('usuario_id'):
+    if not request.session.get('usuario_id') and not request.session.get('admin_id'):
         return redirect('iniciar_sesion')
 
-    id_usuario = request.session.get('usuario_id')
+    pedidos_info = []
 
-    with connection.cursor() as cursor:
-        cursor.execute("""SELECT CONCAT(pnombre, ' ', snombre, ' ', apaterno, ' ', amaterno) AS nombre,
-                            CONCAT(REPLACE(FORMAT(rut, 0), ',', '.'), '-', dv) AS rut,
-                            correo
-                        FROM usuario WHERE id_usuario = %s""", [id_usuario])
-        datos = cursor.fetchone()
+    if request.session.get('usuario_id'):
 
-    if datos:
-        datos_dic = {
-            'nombre': datos[0],
-            'rut': datos[1],
-            'correo': datos[2]
+        id_usuario = request.session.get('usuario_id')
 
-        }
-    else: 
-        datos_dic = {}
+        with connection.cursor() as cursor:
+            cursor.execute("""SELECT CONCAT(pnombre, ' ', snombre, ' ', apaterno, ' ', amaterno) AS nombre,
+                                CONCAT(REPLACE(FORMAT(rut, 0), ',', '.'), '-', dv) AS rut,
+                                correo
+                            FROM usuario WHERE id_usuario = %s""", [id_usuario])
+            datos = cursor.fetchone()
 
-    return render(request, 'perfil.html', {'d': datos_dic})
+        if datos:
+            datos_dic = {
+                'nombre': datos[0], 'rut': datos[1], 'correo': datos[2]
+
+            }
+        else: 
+            datos_dic = {}
+
+            
+        
+        with connection.cursor() as cursor:
+            cursor.execute("""SELECT pp.id_pedido, p.nombre, p.precio, 
+                            pp.cantidad, pp.total, pp.metodo_entrega, pp.sucursal_retiro, pp.fecha
+                            FROM pedido pp JOIN producto p ON pp.id_producto = p.id_producto
+                            WHERE pp.id_usuario = %s""", [id_usuario])
+            pedidos = cursor.fetchall()
+
+        for p in pedidos:
+            pedido = {
+                'id_pedido':p[0], 'producto': p[1], 'precio': p[2], 'cantidad': p[3], 'total': p[4], 'entrega': p[5], 'sucursal': p[6], 'fecha': p[7]
+            }
+            pedidos_info.append(pedido)
+
+
+    elif request.session.get('admin_id'):
+
+        id_admin = request.session.get('admin_id')
+
+        with connection.cursor() as cursor:
+            cursor.execute("""SELECT CONCAT(nombre, ' ', snombre, ' ', apaterno, ' ', amaterno) AS nombre,
+                                rut,
+                                correo
+                            FROM administrador WHERE id = %s""", [id_admin])
+            datos = cursor.fetchone()
+
+        if datos:
+            datos_dic = {
+                'nombre': datos[0],
+                'rut': datos[1],
+                'correo': datos[2]
+
+            }
+        else: 
+            datos_dic = {}
+
+    return render(request, 'perfil.html', {'d': datos_dic, 'pedidos': pedidos_info} )
+
+
 
 
 
@@ -564,7 +621,7 @@ def pagar(request):
     url_return = request.build_absolute_uri(reverse('resultado_pago'))
 
     response = transaction.create(
-        buy_order=f'orden_{usuario_id}_{int(time.time())}',
+        buy_order=f'orden_{int(time.time())}',
         session_id=str(usuario_id),
         amount=total,
         return_url=url_return
@@ -574,6 +631,7 @@ def pagar(request):
         'url_pago': response['url'],
         'token': response['token'],
     })
+
 
 
 
@@ -591,6 +649,32 @@ def resultado_pago(request):
 
         if status == 'AUTHORIZED':
             id_usuario = request.session.get('usuario_id')
+
+            id_pedido = resultado.get('buy_order')
+
+            with connection.cursor() as cursor:
+                cursor.execute("""SELECT c.id_producto, 
+                                  CONCAT(REPLACE(FORMAT(u.rut, 0), ',', '.'), '-', u.dv) AS rut, 
+                                  CONCAT(u.pnombre,' ', u.apaterno, ' ', u.amaterno) AS nombre,
+                                  p.precio,
+                                  c.cantidad,
+                                  (p.precio * c.cantidad) AS subtotal
+                                  FROM carrito c JOIN usuario u ON c.id_usuario = u.id_usuario
+                                  JOIN producto p ON p.id_producto = c.id_producto
+                                  WHERE c.id_usuario = %s """, [id_usuario])
+
+                productos = cursor.fetchall()
+
+                entrega = request.session.get('metodo_entrega')
+                sucursal = request.session.get('sucursal')
+
+                for producto in productos:
+                    id_producto, rut, nombre, precio, cantidad, total = producto
+                    cursor.execute("""INSERT INTO pedido (id_pedido, id_usuario, id_producto, rut, nombre, precio, cantidad, total, metodo_entrega, sucursal_retiro)
+                                      VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", 
+                                      [id_pedido, id_usuario, id_producto, rut, nombre, precio, cantidad, total, entrega, sucursal])
+                    
+                    cursor.execute("UPDATE producto SET cantidad = cantidad - %s WHERE id_producto = %s", [cantidad, id_producto])
 
             with connection.cursor() as cursor:
                 cursor.execute("DELETE FROM carrito WHERE id_usuario = %s", [id_usuario])

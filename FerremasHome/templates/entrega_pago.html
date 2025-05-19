@@ -25,7 +25,7 @@
         <div class="card-body">
             <h2 class="text-center  mb-5">Selecciona metodo de entrega y pago</h2>
 
-            <form method="POST">
+            <form method="POST" action="{% url 'checkout' %}">
                 {% csrf_token %}
                 
                 <div class="mb-3">
@@ -39,20 +39,20 @@
 
                 <div class="mb-3">
                     <label for="tienda">Despacho a domicilio</label>
-                    <input type="radio" name="entrega" value="despacho" id="despacho" checked>
+                    <input type="radio" name="entrega" value="Despacho a domicilio" id="despacho" checked>
                 </div>
                 <div class="mb-3">
-                    <label for="tienda">Entrega en tienda</label>
-                    <input type="radio" name="entrega" value="tienda" id="tienda">
+                    <label for="tienda">Retiro en tienda</label>
+                    <input type="radio" name="entrega" value="Retiro en tienda" id="tienda">
                 </div>
 
 
                 <div id="sucursalesDiv" class="mb-1" style="display: none;">
                     <label for="sucursal" class="form-label"><B>Selecciona una tienda</B></label>
                     <select name="sucursal" id="sucursal" class="form-select">
-                        <option value="">Viña del Mar, Álvarez 1822</option>
-                        <option value="">Valparaíso, Barón 1345</option>
-                        <option value="">Santiago, Av. Grecia 12</option>
+                        <option value="Viña del Mar, Álvarez 1822">Viña del Mar, Álvarez 1822</option>
+                        <option value="Valparaíso, Barón 1345">Valparaíso, Barón 1345</option>
+                        <option value="Santiago, Av. Grecia 12">Santiago, Av. Grecia 12</option>
                     </select>
                 </div>
                 <hr>
@@ -64,7 +64,7 @@
                     <input type="radio" name="pago" value="webpay" id="webpay" checked>
                 </div>
                 <hr>
-                <a href="{% url 'webpay' %}" class="btn btn-outline-secondary w-100">Confirmar y Pagar</a>
+                <button type="submit" class="btn btn-outline-success w-100">Confirmar y Pagar</button>
                 <br>
                 <br>
                 {% if mensaje %}
