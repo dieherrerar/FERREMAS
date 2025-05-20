@@ -25,6 +25,12 @@
                         <label for="correo" class="form-label"><b>Correo Electrónico</b></label>
                         <p name="correo" class="form-control"> {{ d.correo }}</p>
                     </div>
+                    {% if request.session.admin_id %}
+                    <div class="mb-1">
+                        <label for="sucursal" class="form-label"><b>Sucursal</b></label>
+                        <p name="sucursal" class="form-control"> {{ d.sucursal }}</p>
+                    </div>
+                    {% endif %}
                     <hr>
                 </div>
             </div>

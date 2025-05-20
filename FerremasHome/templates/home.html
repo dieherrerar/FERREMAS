@@ -1,8 +1,21 @@
 {% extends 'navbar.html' %}
 {% load static %}
 {% block body %}
+<br>
+    {% if request.session.admin_id %}
+    <p class="form-control" style="margin-left: 20px; max-width: 220px;"> Sucursal de {{ sucursal }}</p>
+    {% else %}
+        <div class="container text-center mt-1">
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="id_sucursal" value="1" class="btn btn-primary m-2">Viña del Mar</button>
+            <button type="submit" name="id_sucursal" value="2" class="btn btn-success m-2">Valparaíso</button>
+            <button type="submit" name="id_sucursal" value="3" class="btn btn-warning m-2">Santiago</button>
+        </form>
+    </div>
+    {% endif %}
 
-    <div class="container mt-5 mb-5 padding-bottom: 3rem;">
+    <div class="container mt-3 mb-5 padding-bottom: 3rem;">
     <form class="d-flex justify-content-center" role="search">
         <input class="form-control me-2 w-50" type="search" placeholder="Buscar Productos" aria-label="Search">
         <button class="btn btn-outline-success" type="submit">Buscar</button>

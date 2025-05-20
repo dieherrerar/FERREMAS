@@ -48,12 +48,14 @@
 
 
                 <div id="sucursalesDiv" class="mb-1" style="display: none;">
-                    <label for="sucursal" class="form-label"><B>Selecciona una tienda</B></label>
-                    <select name="sucursal" id="sucursal" class="form-select">
-                        <option value="Viña del Mar, Álvarez 1822">Viña del Mar, Álvarez 1822</option>
-                        <option value="Valparaíso, Barón 1345">Valparaíso, Barón 1345</option>
-                        <option value="Santiago, Av. Grecia 12">Santiago, Av. Grecia 12</option>
-                    </select>
+                    {% if request.session.id_sucursal  %}
+                        <p><strong>Retirarás en:</strong>
+                            {% if request.session.id_sucursal == '1' or request.session.id_sucursal == 1 %} Viña del Mar, Álvarez 1822
+                            {% elif request.session.id_sucursal == '2' or request.session.id_sucursal == 2 %} Valparaíso, Barón 1345
+                            {% elif request.session.id_sucursal == '3' or request.session.id_sucursal == 3 %} Santiago, Av. Grecia 12
+                            {% endif %}
+                        </p>
+                    {% endif %}
                 </div>
                 <hr>
                 <div class="mb-3">

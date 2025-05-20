@@ -1,6 +1,6 @@
 # urls.py
 from django.urls import path
-from . import views
+from . import views, API
 
 urlpatterns = [
     path('registro/', views.add_cliente, name='registro'),
@@ -25,6 +25,8 @@ urlpatterns = [
     path('perfil/', views.perfil, name='perfil'),
     path('webpay/', views.pagar, name='webpay'),
     path('webpay_resultado/', views.resultado_pago, name='resultado_pago'),
-
-
+    path('api_get_productos', API.api_get_productos, name="api_get_productos"),
+    path('detalle_producto/<int:id>/', API.detalle_producto, name="detalle_producto"),
+    path('categoria_prod/', API.categoria_prod, name="categoria_prod"),
+    path('stock_sucursal/<int:id>/', API.stock_sucursal, name="stock_sucursal"),
 ]

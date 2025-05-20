@@ -87,6 +87,15 @@ def add_product(request):
         precio = request.POST.get('precio')
         cantidad = request.POST.get('cantidad')
 
+        sucursal = request.session.get('admin_sucursal')
+
+        if sucursal == 'Viña del Mar':
+            id_sucursal = 1
+        elif sucursal == 'Valparaíso':
+            id_sucursal = 2
+        elif sucursal == 'Santiago':
+            id_sucursal = 3
+
         datos_formulario = {
             'nombre': nombre,
             'descripcion': descripcion,
@@ -101,14 +110,15 @@ def add_product(request):
         else: 
             with connection.cursor() as cursor:
                 sql = """
-                    INSERT INTO producto (nombre, descripcion, categoria, marca, precio, cantidad)
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                    INSERT INTO producto (nombre, descripcion, categoria, marca, precio, cantidad, id_sucursal)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """
-                cursor.execute(sql, [nombre, descripcion, categoria, marca, precio, cantidad])
+                cursor.execute(sql, [nombre, descripcion, categoria, marca, precio, cantidad, id_sucursal])
         
             return redirect('home')
 
     return render(request, 'add_producto.html')
+
 
 
 def modificar_prod(request, id_producto):
@@ -185,21 +195,48 @@ def iniciar_sesion(request):
 
 def home(request):
     nombre = None
+    sucursal = None 
+    id_sucursal = None
+
+    if request.method == "POST":
+        id_sucursal = request.POST.get('id_sucursal')
+        request.session['id_sucursal'] = id_sucursal
+        return redirect('home')
 
     if request.session.get('usuario_id'):
         nombre = request.session.get('nombre_usuario')
     elif request.session.get('admin_id'):
         nombre = request.session.get('admin_name')
+        sucursal = request.session.get('admin_sucursal')
+
+        if sucursal == 'Viña del Mar':
+            id_sucursal = 1
+        elif sucursal == 'Valparaíso':
+            id_sucursal = 2
+        elif sucursal == 'Santiago':
+            id_sucursal = 3
+    
+    if not id_sucursal:
+        id_sucursal = request.session.get('id_sucursal')
 
     with connection.cursor() as cursor:
-        cursor.execute("SELECT id_producto, nombre, descripcion, categoria, marca, precio, cantidad FROM producto")
-        productos = cursor.fetchall()
+            cursor.execute("""
+                SELECT nombre, id_producto, descripcion, categoria, marca, precio, cantidad 
+                FROM producto 
+                WHERE id_sucursal = %s
+            """, [id_sucursal])
+    
+    print("ID SUCURSAL EN SESIÓN:", request.session.get('id_sucursal'))
+    print("ID SUCURSAL FINAL:", id_sucursal)
+
+
+    productos = cursor.fetchall()
 
     productos_dic = []
     for p in productos:
         producto = {
-            'id_producto':p[0],
-            'nombre': p[1],
+            'nombre':p[0],
+            'id_producto': p[1],
             'descripcion': p[2],
             'categoria': p[3],
             'marca': p[4],
@@ -209,7 +246,7 @@ def home(request):
         }
         productos_dic.append(producto)
 
-    return render(request, 'home.html', {'productos': productos_dic, 'nombre': nombre})
+    return render(request, 'home.html', {'productos': productos_dic, 'nombre': nombre, 'sucursal': sucursal})
 
 
 
@@ -231,10 +268,20 @@ def admin_login(request):
         if admin:
             admin_id=admin[0]
             admin_name = admin[1]
+            admin_sucursal = admin[8]
             contrasena_hash = admin[7].encode('utf-8')
             if bcrypt.checkpw(contrasena.encode('utf-8'), contrasena_hash):
                 request.session['admin_id'] = admin_id
                 request.session['admin_name'] = admin_name
+                request.session['id_sucursal'] = admin_sucursal
+
+                if admin_sucursal == 1:
+                    request.session['admin_sucursal'] = 'Viña del Mar'
+                elif admin_sucursal == 2:
+                    request.session['admin_sucursal'] = 'Valparaíso'
+                elif admin_sucursal == 1:
+                    request.session['admin_sucursal'] = 'Santiago'
+
                 return redirect('home')
             else:
                 return render(request, 'admin_login.html', {'error': 'Datos ingresados son incorrectos'})
@@ -247,8 +294,10 @@ def admin_login(request):
 
 def herr_manuales(request):
     categoria = 'Herramientas Manuales'
+    id_sucursal = request.session.get('id_sucursal')
+
     with connection.cursor() as cursor:
-        cursor.execute('SELECT * FROM producto WHERE categoria = %s', [categoria])
+        cursor.execute('SELECT * FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])
         productos = cursor.fetchall()
 
     productos_dic = []
@@ -271,8 +320,9 @@ def herr_manuales(request):
 
 def eq_seguridad(request):
     categoria = 'Equipos de Seguridad'
+    id_sucursal = request.session.get('id_sucursal')
     with connection.cursor() as cursor:
-        cursor.execute('SELECT * FROM producto WHERE categoria = %s', [categoria])
+        cursor.execute('SELECT * FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])
         productos = cursor.fetchall()
 
     productos_dic = []
@@ -295,8 +345,9 @@ def eq_seguridad(request):
 
 def materiales_basicos(request):
     categoria = 'Materiales Básicos'
+    id_sucursal = request.session.get('id_sucursal')
     with connection.cursor() as cursor:
-        cursor.execute('SELECT * FROM producto WHERE categoria = %s', [categoria])
+        cursor.execute('SELECT * FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])
         productos = cursor.fetchall()
 
     productos_dic = []
@@ -319,8 +370,9 @@ def materiales_basicos(request):
 
 def tor_ancl(request):
     categoria = 'Tornillos y Anclajes'
+    id_sucursal = request.session.get('id_sucursal')
     with connection.cursor() as cursor:
-        cursor.execute('SELECT * FROM producto WHERE categoria = %s', [categoria])
+        cursor.execute('SELECT * FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])
         productos = cursor.fetchall()
 
     productos_dic = []
@@ -341,8 +393,9 @@ def tor_ancl(request):
 
 def eq_medicion(request):
     categoria = 'Equipos de Medición'
+    id_sucursal = request.session.get('id_sucursal')
     with connection.cursor() as cursor:
-        cursor.execute('SELECT * FROM producto WHERE categoria = %s', [categoria])
+        cursor.execute('SELECT * FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])
         productos = cursor.fetchall()
 
     productos_dic = []
@@ -365,8 +418,9 @@ def eq_medicion(request):
 
 def adhesivos(request):
     categoria = 'Fijaciones y Adhesivos'
+    id_sucursal = request.session.get('id_sucursal')
     with connection.cursor() as cursor:
-        cursor.execute('SELECT * FROM producto WHERE categoria = %s', [categoria])
+        cursor.execute('SELECT * FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])
         productos = cursor.fetchall()
 
     productos_dic = []
@@ -499,14 +553,9 @@ def checkout(request):
     else: 
         if request.method == 'POST':
             metodo_entrega = request.POST.get('entrega')
-
-            if metodo_entrega =='Retiro en tienda':
-                sucursal = request.POST.get('sucursal')
-            else: 
-                sucursal = None
         
             request.session['metodo_entrega'] = metodo_entrega
-            request.session['sucursal'] = sucursal
+            id_sucursal = request.session.get('id_sucursal')
 
             return redirect('webpay')
             
@@ -574,18 +623,19 @@ def perfil(request):
         id_admin = request.session.get('admin_id')
 
         with connection.cursor() as cursor:
-            cursor.execute("""SELECT CONCAT(nombre, ' ', snombre, ' ', apaterno, ' ', amaterno) AS nombre,
-                                rut,
-                                correo
-                            FROM administrador WHERE id = %s""", [id_admin])
+            cursor.execute("""SELECT CONCAT(a.nombre, ' ', a.snombre, ' ', a.apaterno, ' ', a.amaterno) AS nombre,
+                                a.rut,
+                                a.correo, 
+                                s.nombre
+                            FROM administrador a JOIN sucursal s ON a.id_sucursal = s.id_sucursal WHERE id = %s""", [id_admin])
             datos = cursor.fetchone()
 
         if datos:
             datos_dic = {
                 'nombre': datos[0],
                 'rut': datos[1],
-                'correo': datos[2]
-
+                'correo': datos[2],
+                'sucursal': datos[3]
             }
         else: 
             datos_dic = {}
@@ -643,6 +693,7 @@ def resultado_pago(request):
 
     transaction = get_webpay_transaction()
 
+    id_sucursal = request.session.get('id_sucursal')
     try:
         resultado = transaction.commit(token_ws)
         status = resultado['status']
@@ -661,20 +712,28 @@ def resultado_pago(request):
                                   (p.precio * c.cantidad) AS subtotal
                                   FROM carrito c JOIN usuario u ON c.id_usuario = u.id_usuario
                                   JOIN producto p ON p.id_producto = c.id_producto
-                                  WHERE c.id_usuario = %s """, [id_usuario])
+                                  WHERE c.id_usuario = %s AND p.id_sucursal = %s """, [id_usuario, id_sucursal])
 
                 productos = cursor.fetchall()
 
                 entrega = request.session.get('metodo_entrega')
-                sucursal = request.session.get('sucursal')
+
+                sucursal = None
+
+                if id_sucursal == '1' or id_sucursal == 1:
+                    sucursal = 'Viña del Mar, Álvarez 1822'
+                elif id_sucursal == '2' or id_sucursal == 2:
+                    sucursal = 'Valparaíso, Barón 1345'
+                elif id_sucursal == '3' or id_sucursal == 3:
+                    sucursal = 'Santiago, Av. Grecia 12'
 
                 for producto in productos:
                     id_producto, rut, nombre, precio, cantidad, total = producto
-                    cursor.execute("""INSERT INTO pedido (id_pedido, id_usuario, id_producto, rut, nombre, precio, cantidad, total, metodo_entrega, sucursal_retiro)
-                                      VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", 
-                                      [id_pedido, id_usuario, id_producto, rut, nombre, precio, cantidad, total, entrega, sucursal])
+                    cursor.execute("""INSERT INTO pedido (id_pedido, id_usuario, id_producto, rut, nombre, precio, cantidad, total, metodo_entrega, sucursal_retiro, id_sucursal)
+                                      VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""", 
+                                      [id_pedido, id_usuario, id_producto, rut, nombre, precio, cantidad, total, entrega, sucursal, id_sucursal])
                     
-                    cursor.execute("UPDATE producto SET cantidad = cantidad - %s WHERE id_producto = %s", [cantidad, id_producto])
+                    cursor.execute("UPDATE producto SET cantidad = cantidad - %s WHERE id_producto = %s AND id_sucursal = %s", [cantidad, id_producto, id_sucursal])
 
             with connection.cursor() as cursor:
                 cursor.execute("DELETE FROM carrito WHERE id_usuario = %s", [id_usuario])
