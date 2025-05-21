@@ -461,6 +461,8 @@ def adhesivos(request):
         cursor.execute('SELECT * FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])
         productos = cursor.fetchall()
 
+    tipo_usd, tipo_eur, tipo_ars = obtener_tipos_cambio()
+
     productos_dic = []
     for p in productos:
         precio_clp =p[5]
