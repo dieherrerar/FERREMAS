@@ -56,6 +56,10 @@
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="{% url 'perfil' %}" style="color: blue;">Perfil</a></li>
                     <li><hr class="dropdown-divider"></li>
+                    {% if request.session.usuario_id %}
+                        <li><a class="dropdown-item" href="{% url 'contacto_usuario' %}" style="color: rgb(19, 191, 19);">Contacto</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                    {% endif %}
                     <li><a class="dropdown-item" href="{% url 'logout' %}" style="color: red;">Cerrar Sesión</a></li>
                 </ul>
             </li>

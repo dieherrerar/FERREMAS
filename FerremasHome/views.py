@@ -8,6 +8,8 @@ import time
 from django.views.decorators.csrf import csrf_exempt
 from .webpay_config import get_webpay_transaction
 from django.urls import reverse
+from .api_bcch import obtener_tipos_cambio
+
 
 
 
@@ -223,28 +225,30 @@ def home(request):
     if not id_sucursal:
         id_sucursal = request.session.get('id_sucursal')
 
+
     with connection.cursor() as cursor:
             cursor.execute("""
                 SELECT nombre, id_producto, descripcion, categoria, marca, precio, cantidad 
                 FROM producto 
                 WHERE id_sucursal = %s
             """, [id_sucursal])
-    
-    print("ID SUCURSAL EN SESIÓN:", request.session.get('id_sucursal'))
-    print("ID SUCURSAL FINAL:", id_sucursal)
+            productos = cursor.fetchall()
 
-
-    productos = cursor.fetchall()
+    tipo_usd, tipo_eur, tipo_ars = obtener_tipos_cambio()
 
     productos_dic = []
     for p in productos:
+        precio_clp =p[5]
         producto = {
             'nombre':p[0],
             'id_producto': p[1],
             'descripcion': p[2],
             'categoria': p[3],
             'marca': p[4],
-            'precio': p[5],
+            'precio': precio_clp,
+            'precio_usd': round(precio_clp / tipo_usd, 2),
+            'precio_eur': round(precio_clp / tipo_eur, 2),
+            'precio_ars': round(precio_clp / tipo_ars, 2),
             'cantidad': p[6]
 
         }
@@ -304,15 +308,21 @@ def herr_manuales(request):
         cursor.execute('SELECT * FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])
         productos = cursor.fetchall()
 
+    tipo_usd, tipo_eur, tipo_ars = obtener_tipos_cambio()
+
     productos_dic = []
     for p in productos:
+        precio_clp =p[5]
         producto = {
-            'id_producto':p[0],
-            'nombre': p[1],
+            'id_producto': p[0],
+            'nombre':p[1],
             'descripcion': p[2],
             'categoria': p[3],
             'marca': p[4],
-            'precio': p[5],
+            'precio': precio_clp,
+            'precio_usd': round(precio_clp / tipo_usd, 2),
+            'precio_eur': round(precio_clp / tipo_eur, 2),
+            'precio_ars': round(precio_clp / tipo_ars, 2),
             'cantidad': p[6]
 
         }
@@ -329,15 +339,21 @@ def eq_seguridad(request):
         cursor.execute('SELECT * FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])
         productos = cursor.fetchall()
 
+    tipo_usd, tipo_eur, tipo_ars = obtener_tipos_cambio()
+
     productos_dic = []
     for p in productos:
+        precio_clp =p[5]
         producto = {
-            'id_producto':p[0],
-            'nombre': p[1],
+            'id_producto': p[0],
+            'nombre':p[1],
             'descripcion': p[2],
             'categoria': p[3],
             'marca': p[4],
-            'precio': p[5],
+            'precio': precio_clp,
+            'precio_usd': round(precio_clp / tipo_usd, 2),
+            'precio_eur': round(precio_clp / tipo_eur, 2),
+            'precio_ars': round(precio_clp / tipo_ars, 2),
             'cantidad': p[6]
 
         }
@@ -354,15 +370,21 @@ def materiales_basicos(request):
         cursor.execute('SELECT * FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])
         productos = cursor.fetchall()
 
+    tipo_usd, tipo_eur, tipo_ars = obtener_tipos_cambio()
+
     productos_dic = []
     for p in productos:
+        precio_clp =p[5]
         producto = {
-            'id_producto':p[0],
-            'nombre': p[1],
+            'id_producto': p[0],
+            'nombre':p[1],
             'descripcion': p[2],
             'categoria': p[3],
             'marca': p[4],
-            'precio': p[5],
+            'precio': precio_clp,
+            'precio_usd': round(precio_clp / tipo_usd, 2),
+            'precio_eur': round(precio_clp / tipo_eur, 2),
+            'precio_ars': round(precio_clp / tipo_ars, 2),
             'cantidad': p[6]
 
         }
@@ -379,15 +401,21 @@ def tor_ancl(request):
         cursor.execute('SELECT * FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])
         productos = cursor.fetchall()
 
+    tipo_usd, tipo_eur, tipo_ars = obtener_tipos_cambio()
+
     productos_dic = []
     for p in productos:
+        precio_clp =p[5]
         producto = {
-            'id_producto':p[0],
-            'nombre': p[1],
+            'id_producto': p[0],
+            'nombre':p[1],
             'descripcion': p[2],
             'categoria': p[3],
             'marca': p[4],
-            'precio': p[5],
+            'precio': precio_clp,
+            'precio_usd': round(precio_clp / tipo_usd, 2),
+            'precio_eur': round(precio_clp / tipo_eur, 2),
+            'precio_ars': round(precio_clp / tipo_ars, 2),
             'cantidad': p[6]
 
         }
@@ -402,15 +430,21 @@ def eq_medicion(request):
         cursor.execute('SELECT * FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])
         productos = cursor.fetchall()
 
+    tipo_usd, tipo_eur, tipo_ars = obtener_tipos_cambio()
+
     productos_dic = []
     for p in productos:
+        precio_clp =p[5]
         producto = {
-            'id_producto':p[0],
-            'nombre': p[1],
+            'id_producto': p[0],
+            'nombre':p[1],
             'descripcion': p[2],
             'categoria': p[3],
             'marca': p[4],
-            'precio': p[5],
+            'precio': precio_clp,
+            'precio_usd': round(precio_clp / tipo_usd, 2),
+            'precio_eur': round(precio_clp / tipo_eur, 2),
+            'precio_ars': round(precio_clp / tipo_ars, 2),
             'cantidad': p[6]
 
         }
@@ -429,13 +463,17 @@ def adhesivos(request):
 
     productos_dic = []
     for p in productos:
+        precio_clp =p[5]
         producto = {
-            'id_producto':p[0],
-            'nombre': p[1],
+            'id_producto': p[0],
+            'nombre':p[1],
             'descripcion': p[2],
             'categoria': p[3],
             'marca': p[4],
-            'precio': p[5],
+            'precio': precio_clp,
+            'precio_usd': round(precio_clp / tipo_usd, 2),
+            'precio_eur': round(precio_clp / tipo_eur, 2),
+            'precio_ars': round(precio_clp / tipo_ars, 2),
             'cantidad': p[6]
 
         }
@@ -498,6 +536,8 @@ def ver_carrito(request):
             WHERE c.id_usuario = %s
         """, [id_usuario])
 
+        tipo_usd, tipo_eur, tipo_ars = obtener_tipos_cambio()
+
         productoss = cursor.fetchall()
 
         for p in productoss:
@@ -509,11 +549,17 @@ def ver_carrito(request):
                 'id_producto': p[5]
             })
             total += p[4]
+
+        divisas = {
+            'total_usd': round(total / tipo_usd, 2),
+            'total_eur': round(total / tipo_eur, 2),
+            'total_ars': round(total / tipo_ars, 2),
+        }
         
         if productos:
             request.session['carrito_id'] = productos[0]
 
-    return render(request, 'carrito.html', {'productos': productos, 'total': total})
+    return render(request, 'carrito.html', {'productos': productos, 'total': total, 'divisas': divisas})
 
 
 
@@ -586,6 +632,8 @@ def perfil(request):
         return redirect('iniciar_sesion')
 
     pedidos_info = []
+    mensajes_dic = []
+    datos_dic = {}
 
     if request.session.get('usuario_id'):
 
@@ -625,6 +673,7 @@ def perfil(request):
     elif request.session.get('admin_id'):
 
         id_admin = request.session.get('admin_id')
+        id_sucursal = request.session.get('id_sucursal')
 
         with connection.cursor() as cursor:
             cursor.execute("""SELECT CONCAT(a.nombre, ' ', a.snombre, ' ', a.apaterno, ' ', a.amaterno) AS nombre,
@@ -644,7 +693,25 @@ def perfil(request):
         else: 
             datos_dic = {}
 
-    return render(request, 'perfil.html', {'d': datos_dic, 'pedidos': pedidos_info} )
+
+        with connection.cursor() as cursor:
+            cursor.execute("""SELECT correo, mensaje, estado, id FROM mensajes_contacto WHERE id_sucursal = %s """, [id_sucursal])
+            mensajes = cursor.fetchall()
+
+        mensajes_dic = []
+
+        for m in mensajes:
+            mensajes_dic.append({
+                'correo': m[0],
+                'mensaje': m[1], 
+                'estado' : m[2],
+                'id': m[3]
+
+            })
+
+        
+
+    return render(request, 'perfil.html', {'d': datos_dic, 'mensajes': mensajes_dic, 'pedidos': pedidos_info} )
 
 
 
@@ -747,3 +814,32 @@ def resultado_pago(request):
             return render(request, 'resultado_pago.html', {'resultado': resultado})
     except Exception as e:
         return render(request, 'entrega_pago.html',{'mensaje': f'Error procesando pago: {str(e)}'} )
+
+
+
+
+def contacto_usuario(request):
+    if request.method == 'POST':
+        correo = request.POST.get('correo')
+        mensaje = request.POST.get('mensaje')
+        id_sucursal = request.POST.get('sucursal')
+        id_usuario = request.session.get('usuario_id')
+
+        if correo == "" or mensaje =="":
+            return render(request, 'contacto.html', {'mensaje': 'Ningún campo debe estar vacío'})
+        else:
+            with connection.cursor() as cursor:
+                cursor.execute(""" INSERT INTO mensajes_contacto (id_usuario, correo, mensaje, id_sucursal)
+                                   VALUES(%s, %s, %s, %s)""", [id_usuario, correo, mensaje, id_sucursal])
+
+            return redirect('home')
+    return render(request, 'contacto.html')
+
+
+
+def marcar_leido(request):
+    id_mensaje = request.POST.get('id_mensaje')
+    if id_mensaje:
+        with connection.cursor() as cursor:
+            cursor.execute("UPDATE mensajes_contacto SET estado = %s WHERE id = %s", ['leído', id_mensaje])
+    return redirect('perfil')

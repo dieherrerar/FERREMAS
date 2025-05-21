@@ -36,6 +36,9 @@
                     <p class="card-text descripcion" title="{{ producto.descripcion }}">{{ producto.descripcion }}</p>
                     <p class="text-muted">{{ producto.marca }}</p>
                     <p><strong>${{ producto.precio }}</strong></p>
+                    <p>USD: ${{ producto.precio_usd }}</p>
+                    <p>EUR: €{{ producto.precio_eur }}</p>
+                    <p>ARS: ${{ producto.precio_ars }}</p>
                     <p class="text-muted">Quedan {{ producto.cantidad }} unidades</p>
 
                     <hr>

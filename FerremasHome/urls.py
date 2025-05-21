@@ -29,4 +29,6 @@ urlpatterns = [
     path('detalle_producto/<int:id>/', API.detalle_producto, name="detalle_producto"),
     path('categoria_prod/', API.categoria_prod, name="categoria_prod"),
     path('stock_sucursal/<int:id>/', API.stock_sucursal, name="stock_sucursal"),
+    path('contacto_usuario/', views.contacto_usuario, name="contacto_usuario" ),
+    path('marcar_leido', views.marcar_leido, name="marcar_leido")
 ]
