@@ -88,6 +88,7 @@ def add_product(request):
         cantidad = request.POST.get('cantidad')
 
         sucursal = request.session.get('admin_sucursal')
+        id_sucursal = None  # <- Añade esta línea para inicializarla
 
         if sucursal == 'Viña del Mar':
             id_sucursal = 1
@@ -95,6 +96,10 @@ def add_product(request):
             id_sucursal = 2
         elif sucursal == 'Santiago':
             id_sucursal = 3
+
+        # Validación de existencia de id_sucursal
+        if id_sucursal is None:
+            return HttpResponse("Error: No se ha podido identificar la sucursal del administrador.", status=400)
 
         datos_formulario = {
             'nombre': nombre,
@@ -104,18 +109,17 @@ def add_product(request):
             'cantidad': cantidad,
         }
 
-
-        if nombre=="" or descripcion=="" or categoria=="" or marca=="" or precio=="" or cantidad=="":
+        if not all([nombre, descripcion, categoria, marca, precio, cantidad]):
             return render(request, 'add_producto.html', {'mensaje': 'Ningún campo debe estar vacío', 'datos': datos_formulario})
-        else: 
-            with connection.cursor() as cursor:
-                sql = """
-                    INSERT INTO producto (nombre, descripcion, categoria, marca, precio, cantidad, id_sucursal)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """
-                cursor.execute(sql, [nombre, descripcion, categoria, marca, precio, cantidad, id_sucursal])
-        
-            return redirect('home')
+
+        with connection.cursor() as cursor:
+            sql = """
+                INSERT INTO producto (nombre, descripcion, categoria, marca, precio, cantidad, id_sucursal)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(sql, [nombre, descripcion, categoria, marca, precio, cantidad, id_sucursal])
+
+        return redirect('home')
 
     return render(request, 'add_producto.html')
 
@@ -279,7 +283,7 @@ def admin_login(request):
                     request.session['admin_sucursal'] = 'Viña del Mar'
                 elif admin_sucursal == 2:
                     request.session['admin_sucursal'] = 'Valparaíso'
-                elif admin_sucursal == 1:
+                elif admin_sucursal == 3:
                     request.session['admin_sucursal'] = 'Santiago'
 
                 return redirect('home')
