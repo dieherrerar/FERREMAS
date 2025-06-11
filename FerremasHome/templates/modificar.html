@@ -63,10 +63,19 @@
                 <button type="submit" class="btn btn-success w-100">Modificar</button>
             
             </form>
-            <form method="POST" action="{% url 'eliminar_prod' id_producto=producto.id_producto %}" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.');">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-danger w-100 mt-2">Eliminar Producto</button>
-            </form>
+            {% if producto.is_active %}
+                <form method="POST" action="{% url 'desactivar_prod' id_producto=producto.id_producto %}" 
+                    onsubmit="return confirm('¿Estás seguro de que deseas desactivar este producto? Esta acción no se puede deshacer.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger w-100 mt-2">Desactivar Producto</button>
+                </form>
+            {% else %}
+                <form method="POST" action="{% url 'activar_prod' id_producto=producto.id_producto %}" 
+                    onsubmit="return confirm('¿Estás seguro de que deseas activar este producto?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-success w-100 mt-2">Activar Producto</button>
+                </form>
+            {% endif %}
             
         </div>
     </div>
