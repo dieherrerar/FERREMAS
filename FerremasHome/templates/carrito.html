@@ -30,7 +30,7 @@
                                 <form action="{% url 'modificar_cantidad' p.id_producto %}" method="post" class="d-flex align-items-center gap-2 my-2">
                                     {% csrf_token %}
                                     <label for="cantidad" class="form-label">Cantidad</label>
-                                    <input type="number" name="cantidad" min="1" value="{{ p.cantidad }}" class="form-control" style="width: 80px;">
+                                    <input type="number" name="cantidad" min="1" max= "5" value="{{ p.cantidad }}" class="form-control" style="width: 80px;">
                                     <button type="submit" class="btn btn-sm btn-outline-secondary">Actualizar</button>
                                 </form>                                
                                 <p class="mb-0"><strong>Subtotal ${{ p.subtotal }}</strong></p>
@@ -71,6 +71,9 @@
                 <div class="text-center">
                     <a href="{% url 'home' %}" class="btn btn-primary mt-4 w-50">Ir a la tienda</a>
                 </div>
+                {% endif %}
+                {% if error %}
+                    <p style="color:red;">{{ error }}</p>
                 {% endif %}
             </form>
         </div>

@@ -571,7 +571,7 @@ def ver_carrito(request):
         }
         
         if productos:
-            request.session['carrito_id'] = productos[0]
+            request.session['carrito'] = productos
 
     return render(request, 'carrito.html', {'productos': productos, 'total': total, 'divisas': divisas})
 
@@ -599,12 +599,26 @@ def modificar_cantidad(request, id_producto):
         id_usuario = request.session['usuario_id']
         cantidad = int(request.POST.get('cantidad', 1))
 
+        # Obtener el stock disponible para el producto
         with connection.cursor() as cursor:
             cursor.execute("""
-                UPDATE carrito SET cantidad = %s
-                WHERE id_usuario = %s AND id_producto = %s
-            """, [cantidad, id_usuario, id_producto])
+                SELECT cantidad FROM producto WHERE id_producto = %s
+            """, [id_producto])
+            stock_disponible = cursor.fetchone()
 
+        # Verificar si hay stock disponible
+        if cantidad <= stock_disponible[0]:
+            # Si la cantidad es válida, actualizar la cantidad en el carrito
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    UPDATE carrito SET cantidad = %s
+                    WHERE id_usuario = %s AND id_producto = %s
+                """, [cantidad, id_usuario, id_producto])
+        else:
+            # Si la cantidad es mayor que el stock, mostrar un mensaje de error
+            return render(request, 'carrito.html', {'error': 'La cantidad ingresada supera el stock del producto'})
+
+    # Redirigir a la página del carrito sin borrar nada
     return redirect('ver_carrito')
 
 
