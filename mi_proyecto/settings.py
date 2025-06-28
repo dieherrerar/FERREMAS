@@ -1,10 +1,9 @@
+import os
 from pathlib import Path
-
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -16,7 +15,6 @@ SECRET_KEY = 'django-insecure-=!j^zm6eskxzkch+1#yq4(%#*&i5$wv56^uy9&4j9@ernc0-#q
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -31,7 +29,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
 ]
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -41,7 +38,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ] 
-
 ROOT_URLCONF = 'mi_proyecto.urls'
 
 TEMPLATES = [
@@ -58,17 +54,28 @@ TEMPLATES = [
         },
     },
 ]
-
 WSGI_APPLICATION = 'mi_proyecto.wsgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+import os
+from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Base de datos para producción (MySQL)
+import os
+from pathlib import Path
+from django.core.management import call_command
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Configuración de la base de datos
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ferremas',  # Asegúrate de que esta base exista o cámbiala por la correcta
+        'NAME': 'ferremas',  # Nombre de tu base de datos en producción
         'USER': 'FERREMASADMIN',
         'PASSWORD': 'Ferremas123',
         'HOST': 'ferremas.czocycg8ac5e.us-east-2.rds.amazonaws.com',
@@ -76,7 +83,19 @@ DATABASES = {
     }
 }
 
+# Variable de entorno para verificar si estamos en el entorno de pruebas
+ENV = os.environ.get('DJANGO_ENV', 'production')
 
+if ENV == 'test':
+    print("Using SQLite in memory for tests")
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',  # Base de datos en memoria para pruebas
+    }
+
+    # Aplica las migraciones antes de ejecutar el servidor si estamos en pruebas
+    call_command('migrate')
+    
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -95,7 +114,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -107,7 +125,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
@@ -117,3 +134,4 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+print("Using database:", DATABASES['default'])
