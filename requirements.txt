@@ -3,6 +3,6 @@ PyMySql==1.1.1
 bcrypt==4.3.0
 pip==25.0.1
 transbank-sdk==6.0.0
-djangorestframework==3.16.0
+djangorestframework==3.15.2
 bcchapi==1.1.2
 drf-yasg==1.21.10
