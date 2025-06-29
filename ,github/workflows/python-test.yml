@@ -1,4 +1,4 @@
-name: CI/CD Workflow
+name: Django CI/CD Workflow
 
 on:
   push:
@@ -10,31 +10,31 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest  # Se ejecuta en Ubuntu
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2  # Obtiene el código del repositorio
+      uses: actions/checkout@v2
 
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.8'  # Ajusta según tu versión de Python
+        python-version: '3.8'
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt  # Instala las dependencias del proyecto
+        pip install -r requirements.txt
 
     - name: Set up database environment variables
       env:
-        DB_USER: ${{ secrets.DB_USER }}  # Toma el secreto de DB_USER
-        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}  # Toma el secreto de DB_PASSWORD
-        DB_HOST: ${{ secrets.DB_HOST }}  # Toma el secreto de DB_HOST
-        DB_NAME: ${{ secrets.DB_NAME }}  # Toma el secreto de DB_NAME
-        DB_PORT: ${{ secrets.DB_PORT }}  # Toma el secreto de DB_PORT
+        DB_USER: ${{ secrets.DB_USER }}  # Obtiene el secret de DB_USER
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}  # Obtiene el secret de DB_PASSWORD
+        DB_HOST: ${{ secrets.DB_HOST }}  # Obtiene el secret de DB_HOST
+        DB_NAME: ${{ secrets.DB_NAME }}  # Obtiene el secret de DB_NAME
+        DB_PORT: ${{ secrets.DB_PORT }}  # Obtiene el secret de DB_PORT
       run: |
-        echo "DB_USER=${{ secrets.DB_USER }}" >> $GITHUB_ENV  # Guarda como variables de entorno
+        echo "DB_USER=${{ secrets.DB_USER }}" >> $GITHUB_ENV  # Asigna los secrets a variables de entorno
         echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
         echo "DB_HOST=${{ secrets.DB_HOST }}" >> $GITHUB_ENV
         echo "DB_NAME=${{ secrets.DB_NAME }}" >> $GITHUB_ENV
@@ -42,19 +42,4 @@ jobs:
 
     - name: Run Tests
       run: |
-        python manage.py test  # Ejecuta las pruebas unitarias
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: test  # Solo se ejecuta si las pruebas son exitosas
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2  # Obtiene el código del repositorio
-
-    - name: Deploy to Heroku
-      run: |
-        git remote add heroku https://git.heroku.com/your-heroku-app.git
-        git push heroku main
-      env:
-        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}  # Utiliza el API Key de Heroku desde los secrets
+        python manage.py test  # Ejecuta las pruebas en Django
