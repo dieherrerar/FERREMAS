@@ -1,6 +1,8 @@
 # urls.py
 from django.urls import path
 from . import views, API
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('registro/', views.add_cliente, name='registro'),
@@ -33,4 +35,4 @@ urlpatterns = [
     path('stock_sucursal/<int:id>/', API.stock_sucursal, name="stock_sucursal"),
     path('contacto_usuario/', views.contacto_usuario, name="contacto_usuario" ),
     path('marcar_leido', views.marcar_leido, name="marcar_leido")
-]
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

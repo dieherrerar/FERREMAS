@@ -138,3 +138,7 @@ print("Using database:", DATABASES['default'])
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
+
+# Configuración para archivos de medios (fotos, imágenes, etc.)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
