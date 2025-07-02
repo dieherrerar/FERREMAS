@@ -56,7 +56,7 @@ class ProductoTestCase(TestCase):
             producto.full_clean()  # Llamamos a full_clean para que se dispare la validación
 
     def test_producto_actualizacion(self):
-        """Prueba que un producto se actualice correctamente"""
+        """Prueba actualizacion de precio"""
         producto = Producto.objects.get(nombre="Martillo")
         producto.precio = 1200.0  # Actualizamos el precio
         producto.save()  # Guardamos el cambio
