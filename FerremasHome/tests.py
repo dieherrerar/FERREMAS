@@ -55,6 +55,7 @@ class ProductoTestCase(TestCase):
         with self.assertRaises(ValidationError):
             producto.full_clean()  # Llamamos a full_clean para que se dispare la validación
 
+
     def test_producto_actualizacion(self):
         """Prueba actualizacion de precio"""
         producto = Producto.objects.get(nombre="Martillo")
@@ -64,3 +65,17 @@ class ProductoTestCase(TestCase):
         # Verificamos que el precio se haya actualizado
         producto_actualizado = Producto.objects.get(nombre="Martillo")
         self.assertEqual(producto_actualizado.precio, 1200.0)
+
+    def test_producto_cantidad_negativa(self):
+        """Prueba que no se pueda crear un producto con una cantidad negativa"""
+        producto = Producto(
+            nombre="Destornillador",
+            descripcion="Destornillador plano",
+            categoria="Herramientas",
+            marca="Marca C",
+            precio=500.0,
+            cantidad=-10,  # Cantidad negativa, debería causar un error
+            is_active=True
+        )
+        with self.assertRaises(ValidationError):
+            producto.full_clean()  # Llamamos a full_clean para que se dispare la validación
