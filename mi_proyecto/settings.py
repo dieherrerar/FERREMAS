@@ -141,7 +141,6 @@ print("Using database:", DATABASES['default'])
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Asegúrate de que tienes la ruta de los archivos estáticos definidos correctamente
-STATIC_URL = '/static/'
 
 # Si utilizas WhiteNoise, puedes configurarlo así:
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
