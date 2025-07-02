@@ -38,6 +38,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+
 ] 
 ROOT_URLCONF = 'mi_proyecto.urls'
 
@@ -137,10 +138,5 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 print("Using database:", DATABASES['default'])
 
-# La ruta de los archivos estáticos de producción en Heroku
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Asegúrate de que tienes la ruta de los archivos estáticos definidos correctamente
-
-# Si utilizas WhiteNoise, puedes configurarlo así:
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATIC_URL = '/static/'
