@@ -9,6 +9,8 @@ from django.views.decorators.csrf import csrf_exempt
 from .webpay_config import get_webpay_transaction
 from django.urls import reverse
 from .api_bcch import obtener_tipos_cambio
+from google.cloud import storage
+import uuid
 
 
 
@@ -79,6 +81,19 @@ def add_cliente(request):
     return render(request, 'registro.html')
 
 
+#FUNCION PARA SUBIR IMAGEN A GCP
+def upload_to_gcp(file_obj, bucket_name):
+
+    #Inicializamos el cliente GCP
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+
+    unique_filename = f"productos/{uuid.uuid4()}_{file_obj.name}"
+    blob = bucket.blob(unique_filename)
+
+    blob.upload_from_file(file_obj)
+    return blob.public_url
+
 
 def add_product(request):
     if request.method == 'POST':
@@ -88,6 +103,7 @@ def add_product(request):
         marca = request.POST.get('marca')
         precio = request.POST.get('precio')
         cantidad = request.POST.get('cantidad')
+        imagen = request.FILES.get('imagen')
 
         sucursal = request.session.get('admin_sucursal')
         id_sucursal = None  # <- Añade esta línea para inicializarla
@@ -111,17 +127,26 @@ def add_product(request):
             'cantidad': cantidad,
         }
 
-        if not all([nombre, descripcion, categoria, marca, precio, cantidad]):
+        if not all([nombre, descripcion, categoria, marca, precio, cantidad, imagen]):
             return render(request, 'add_producto.html', {'mensaje': 'Ningún campo debe estar vacío', 'datos': datos_formulario})
 
-        with connection.cursor() as cursor:
-            sql = """
-                INSERT INTO producto (nombre, descripcion, categoria, marca, precio, cantidad, id_sucursal)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """
-            cursor.execute(sql, [nombre, descripcion, categoria, marca, precio, cantidad, id_sucursal])
 
-        return redirect('home')
+        #Subir imagen a GCS
+        bucket_name = 'ferremas-products-img'
+        url_imagen = upload_to_gcp(imagen, bucket_name)
+
+        try:
+            with connection.cursor() as cursor:
+                sql = """
+                    INSERT INTO producto (nombre, descripcion, categoria, marca, precio, cantidad, id_sucursal, imagen_url)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(sql, [nombre, descripcion, categoria, marca, precio, cantidad, id_sucursal, url_imagen])
+
+            return redirect('home')
+        except Exception as e:
+            print("Error en insert producto:", e)
+            return HttpResponse(f"Error: {e}", status=500)
 
     return render(request, 'add_producto.html')
 
@@ -141,7 +166,7 @@ def modificar_prod(request, id_producto):
                 UPDATE producto
                 SET nombre = %s, descripcion = %s, precio = %s, marca = %s, categoria = %s, cantidad = %s
                 WHERE id_producto = %s
-            """, [nombre, descripcion, precio, marca, categoria, cantidad, id_producto ])
+            """, [nombre, descripcion, precio, marca, categoria, cantidad, id_producto])
         
         return redirect('home')
     
@@ -235,14 +260,24 @@ def home(request):
     if not id_sucursal:
         id_sucursal = request.session.get('id_sucursal')
 
+    search_query = request.GET.get('q')
+
 
     with connection.cursor() as cursor:
+        if search_query:
             cursor.execute("""
-                SELECT nombre, id_producto, descripcion, categoria, marca, precio, cantidad, is_active
+                SELECT nombre, id_producto, descripcion, categoria, marca, precio, cantidad, is_active, imagen_url
+                FROM producto 
+                WHERE id_sucursal = %s AND nombre LIKE %s
+            """, [id_sucursal, f'%{search_query}%'])
+        else:
+            cursor.execute("""
+                SELECT nombre, id_producto, descripcion, categoria, marca, precio, cantidad, is_active, imagen_url
                 FROM producto 
                 WHERE id_sucursal = %s
             """, [id_sucursal])
-            productos = cursor.fetchall()
+        
+        productos = cursor.fetchall()
 
     tipo_usd, tipo_eur, tipo_ars = obtener_tipos_cambio()
 
@@ -260,7 +295,8 @@ def home(request):
             'precio_eur': round(precio_clp / tipo_eur, 2),
             'precio_ars': round(precio_clp / tipo_ars, 2),
             'cantidad': p[6],
-            'is_active': p[7]
+            'is_active': p[7],
+            'imagen_url': p[8]
         }
         productos_dic.append(producto)
 
@@ -315,16 +351,21 @@ def herr_manuales(request):
     id_sucursal = request.session.get('id_sucursal')
 
     with connection.cursor() as cursor:
-        cursor.execute('SELECT id_producto, nombre, descripcion, categoria, marca, precio, cantidad, is_active FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])       
-        productos = cursor.fetchall()
+            cursor.execute("""
+                SELECT nombre, id_producto, descripcion, categoria, marca, precio, cantidad, is_active, imagen_url
+                FROM producto 
+                WHERE id_sucursal = %s AND categoria = %s
+            """, [id_sucursal, categoria])
+            productos = cursor.fetchall()
+
     tipo_usd, tipo_eur, tipo_ars = obtener_tipos_cambio()
 
     productos_dic = []
     for p in productos:
         precio_clp =p[5]
         producto = {
-            'id_producto': p[0],
-            'nombre':p[1],
+            'nombre':p[0],
+            'id_producto': p[1],
             'descripcion': p[2],
             'categoria': p[3],
             'marca': p[4],
@@ -333,8 +374,8 @@ def herr_manuales(request):
             'precio_eur': round(precio_clp / tipo_eur, 2),
             'precio_ars': round(precio_clp / tipo_ars, 2),
             'cantidad': p[6],
-            'is_active': p[7]
-
+            'is_active': p[7],
+            'imagen_url': p[8]
         }
         productos_dic.append(producto)
     
@@ -345,17 +386,23 @@ def herr_manuales(request):
 def eq_seguridad(request):
     categoria = 'Equipos de Seguridad'
     id_sucursal = request.session.get('id_sucursal')
+
     with connection.cursor() as cursor:
-        cursor.execute('SELECT id_producto, nombre, descripcion, categoria, marca, precio, cantidad, is_active FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])       
-        productos = cursor.fetchall()
+            cursor.execute("""
+                SELECT nombre, id_producto, descripcion, categoria, marca, precio, cantidad, is_active, imagen_url
+                FROM producto 
+                WHERE id_sucursal = %s AND categoria = %s
+            """, [id_sucursal, categoria])
+            productos = cursor.fetchall()
+
     tipo_usd, tipo_eur, tipo_ars = obtener_tipos_cambio()
 
     productos_dic = []
     for p in productos:
         precio_clp =p[5]
         producto = {
-            'id_producto': p[0],
-            'nombre':p[1],
+            'nombre':p[0],
+            'id_producto': p[1],
             'descripcion': p[2],
             'categoria': p[3],
             'marca': p[4],
@@ -364,8 +411,8 @@ def eq_seguridad(request):
             'precio_eur': round(precio_clp / tipo_eur, 2),
             'precio_ars': round(precio_clp / tipo_ars, 2),
             'cantidad': p[6],
-            'is_active': p[7]
-
+            'is_active': p[7],
+            'imagen_url': p[8]
         }
         productos_dic.append(producto)
     
@@ -376,9 +423,14 @@ def eq_seguridad(request):
 def materiales_basicos(request):
     categoria = 'Materiales Básicos'
     id_sucursal = request.session.get('id_sucursal')
+
     with connection.cursor() as cursor:
-        cursor.execute('SELECT id_producto, nombre, descripcion, categoria, marca, precio, cantidad, is_active FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])      
-        productos = cursor.fetchall()
+            cursor.execute("""
+                SELECT nombre, id_producto, descripcion, categoria, marca, precio, cantidad, is_active, imagen_url
+                FROM producto 
+                WHERE id_sucursal = %s AND categoria = %s
+            """, [id_sucursal, categoria])
+            productos = cursor.fetchall()
 
     tipo_usd, tipo_eur, tipo_ars = obtener_tipos_cambio()
 
@@ -386,8 +438,8 @@ def materiales_basicos(request):
     for p in productos:
         precio_clp =p[5]
         producto = {
-            'id_producto': p[0],
-            'nombre':p[1],
+            'nombre':p[0],
+            'id_producto': p[1],
             'descripcion': p[2],
             'categoria': p[3],
             'marca': p[4],
@@ -396,8 +448,8 @@ def materiales_basicos(request):
             'precio_eur': round(precio_clp / tipo_eur, 2),
             'precio_ars': round(precio_clp / tipo_ars, 2),
             'cantidad': p[6],
-            'is_active': p[7]
-
+            'is_active': p[7],
+            'imagen_url': p[8]
         }
         productos_dic.append(producto)
     
@@ -408,17 +460,23 @@ def materiales_basicos(request):
 def tor_ancl(request):
     categoria = 'Tornillos y Anclajes'
     id_sucursal = request.session.get('id_sucursal')
+
     with connection.cursor() as cursor:
-        cursor.execute('SELECT id_producto, nombre, descripcion, categoria, marca, precio, cantidad, is_active FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])        
-        productos = cursor.fetchall()
+            cursor.execute("""
+                SELECT nombre, id_producto, descripcion, categoria, marca, precio, cantidad, is_active, imagen_url
+                FROM producto 
+                WHERE id_sucursal = %s AND categoria = %s
+            """, [id_sucursal, categoria])
+            productos = cursor.fetchall()
+
     tipo_usd, tipo_eur, tipo_ars = obtener_tipos_cambio()
 
     productos_dic = []
     for p in productos:
         precio_clp =p[5]
         producto = {
-            'id_producto': p[0],
-            'nombre':p[1],
+            'nombre':p[0],
+            'id_producto': p[1],
             'descripcion': p[2],
             'categoria': p[3],
             'marca': p[4],
@@ -427,8 +485,8 @@ def tor_ancl(request):
             'precio_eur': round(precio_clp / tipo_eur, 2),
             'precio_ars': round(precio_clp / tipo_ars, 2),
             'cantidad': p[6],
-            'is_active': p[7]
-
+            'is_active': p[7],
+            'imagen_url': p[8]
         }
         productos_dic.append(producto)
 
@@ -437,17 +495,23 @@ def tor_ancl(request):
 def eq_medicion(request):
     categoria = 'Equipos de Medición'
     id_sucursal = request.session.get('id_sucursal')
+
     with connection.cursor() as cursor:
-        cursor.execute('SELECT id_producto, nombre, descripcion, categoria, marca, precio, cantidad, is_active FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])   
-        productos = cursor.fetchall()   
+            cursor.execute("""
+                SELECT nombre, id_producto, descripcion, categoria, marca, precio, cantidad, is_active, imagen_url
+                FROM producto 
+                WHERE id_sucursal = %s AND categoria = %s
+            """, [id_sucursal, categoria])
+            productos = cursor.fetchall()
+
     tipo_usd, tipo_eur, tipo_ars = obtener_tipos_cambio()
 
     productos_dic = []
     for p in productos:
         precio_clp =p[5]
         producto = {
-            'id_producto': p[0],
-            'nombre':p[1],
+            'nombre':p[0],
+            'id_producto': p[1],
             'descripcion': p[2],
             'categoria': p[3],
             'marca': p[4],
@@ -456,8 +520,8 @@ def eq_medicion(request):
             'precio_eur': round(precio_clp / tipo_eur, 2),
             'precio_ars': round(precio_clp / tipo_ars, 2),
             'cantidad': p[6],
-            'is_active': p[7]
-
+            'is_active': p[7],
+            'imagen_url': p[8]
         }
         productos_dic.append(producto)
     
@@ -468,9 +532,14 @@ def eq_medicion(request):
 def adhesivos(request):
     categoria = 'Fijaciones y Adhesivos'
     id_sucursal = request.session.get('id_sucursal')
+
     with connection.cursor() as cursor:
-        cursor.execute('SELECT id_producto, nombre, descripcion, categoria, marca, precio, cantidad, is_active FROM producto WHERE categoria = %s AND id_sucursal = %s', [categoria, id_sucursal])
-        productos = cursor.fetchall()
+            cursor.execute("""
+                SELECT nombre, id_producto, descripcion, categoria, marca, precio, cantidad, is_active, imagen_url
+                FROM producto 
+                WHERE id_sucursal = %s AND categoria = %s
+            """, [id_sucursal, categoria])
+            productos = cursor.fetchall()
 
     tipo_usd, tipo_eur, tipo_ars = obtener_tipos_cambio()
 
@@ -478,8 +547,8 @@ def adhesivos(request):
     for p in productos:
         precio_clp =p[5]
         producto = {
-            'id_producto': p[0],
-            'nombre':p[1],
+            'nombre':p[0],
+            'id_producto': p[1],
             'descripcion': p[2],
             'categoria': p[3],
             'marca': p[4],
@@ -488,8 +557,8 @@ def adhesivos(request):
             'precio_eur': round(precio_clp / tipo_eur, 2),
             'precio_ars': round(precio_clp / tipo_ars, 2),
             'cantidad': p[6],
-            'is_active': p[7]
-
+            'is_active': p[7],
+            'imagen_url': p[8]
         }
         productos_dic.append(producto)
     

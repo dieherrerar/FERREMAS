@@ -20,7 +20,7 @@
         <div class="card-body">
             <h2 class="text-center  mb-5">Ingresar nuevo producto</h2>
 
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
 
                 <div class="mb-1">
@@ -59,6 +59,11 @@
                 <div class="mb-1">
                     <label for="cantidad" class="form-label">Cantidad</label>
                     <input type="number" name="cantidad" class="form-control" min="1" value="{{ datos.cantidad|default:'' }}" required><br>
+                </div>
+
+                <div class="mb-1">
+                    <label for="imagen" class="form-label">Imagen</label>
+                    <input type="file" name="imagen" class="form-control" accept="image/*" required><br>
                 </div>
 
                 {% if mensaje %}
