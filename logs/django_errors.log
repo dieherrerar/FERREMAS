@@ -1,0 +1,29 @@
+Internal Server Error: /add_producto/
+Traceback (most recent call last):
+  File "/home/diegolda860/FERREMAS/venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/diegolda860/FERREMAS/venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/diegolda860/FERREMAS/FerremasHome/views.py", line 136, in add_product
+    url_imagen = upload_to_gcp(imagen, bucket_name)
+  File "/home/diegolda860/FERREMAS/FerremasHome/views.py", line 88, in upload_to_gcp
+    storage_client = storage.Client()
+  File "/home/diegolda860/FERREMAS/venv/lib/python3.10/site-packages/google/cloud/storage/client.py", line 247, in __init__
+    super(Client, self).__init__(
+  File "/home/diegolda860/FERREMAS/venv/lib/python3.10/site-packages/google/cloud/client/__init__.py", line 338, in __init__
+    _ClientProjectMixin.__init__(self, project=project, credentials=credentials)
+  File "/home/diegolda860/FERREMAS/venv/lib/python3.10/site-packages/google/cloud/client/__init__.py", line 286, in __init__
+    project = self._determine_default(project)
+  File "/home/diegolda860/FERREMAS/venv/lib/python3.10/site-packages/google/cloud/client/__init__.py", line 305, in _determine_default
+    return _determine_default_project(project)
+  File "/home/diegolda860/FERREMAS/venv/lib/python3.10/site-packages/google/cloud/_helpers/__init__.py", line 152, in _determine_default_project
+    _, project = google.auth.default()
+  File "/home/diegolda860/FERREMAS/venv/lib/python3.10/site-packages/google/auth/_default.py", line 651, in default
+    credentials, project_id = checker()
+  File "/home/diegolda860/FERREMAS/venv/lib/python3.10/site-packages/google/auth/_default.py", line 644, in <lambda>
+    lambda: _get_explicit_environ_credentials(quota_project_id=quota_project_id),
+  File "/home/diegolda860/FERREMAS/venv/lib/python3.10/site-packages/google/auth/_default.py", line 293, in _get_explicit_environ_credentials
+    credentials, project_id = load_credentials_from_file(
+  File "/home/diegolda860/FERREMAS/venv/lib/python3.10/site-packages/google/auth/_default.py", line 125, in load_credentials_from_file
+    raise exceptions.DefaultCredentialsError(
+google.auth.exceptions.DefaultCredentialsError: File FERREMAS/gcp/ferremas-465102-65063cb33b4b.json was not found.
