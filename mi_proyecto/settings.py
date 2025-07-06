@@ -75,11 +75,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ferremas',  # Nombre de tu base de datos en producción
-        'USER': 'FERREMASADMIN',
-        'PASSWORD': 'Ferremas123',
-        'HOST': 'ferremas.czocycg8ac5e.us-east-2.rds.amazonaws.com',
-        'PORT': '3306',
+        'NAME': os.environ.get('DB_NAME'),  # Nombre de tu base de datos en producción
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT'),
     }
 }
 
