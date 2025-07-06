@@ -1,0 +1,13 @@
+.btn-back {
+      position: fixed; /* queda fijo en la pantalla */
+      top: 20px;
+      left: 20px;
+      z-index: 1050; /* Para que quede sobre otros elementos */
+    }
+
+body{
+  background-image: url('static/fotos/Screenshot_2025-05-14_at_4.30.13_PM-removebg-preview.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}

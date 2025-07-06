@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -12,11 +12,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-=!j^zm6eskxzkch+1#yq4(%#*&i5$wv56^uy9&4j9@ernc0-#q'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['ferremas1-1c8c84de4399.herokuapp.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['ferremas1-1c8c84de4399.herokuapp.com', 'localhost', '127.0.0.1', '34.60.120.252']
 
 # Application definition
+
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -70,6 +72,10 @@ from pathlib import Path
 from django.core.management import call_command
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+from dotenv import load_dotenv
+load_dotenv()
 
 # Configuración de la base de datos
 DATABASES = {
@@ -136,8 +142,14 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 print("Using database:", DATABASES['default'])
 
-STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
+
+
 
 # Configuración para archivos de medios (fotos, imágenes, etc.)
 MEDIA_URL = '/media/'
