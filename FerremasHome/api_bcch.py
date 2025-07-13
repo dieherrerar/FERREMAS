@@ -1,10 +1,15 @@
 import bcchapi
 import pandas as pd
 from datetime import datetime, timedelta
+import os
+from dotenv import load_dotenv
 
 def obtener_tipos_cambio():
+    load_dotenv()
+    email = os.getenv("BCCH_EMAIL")
+    password = os.getenv("BCCH_PASSWORD")
 
-    siete = bcchapi.Siete("diego321herrera@gmail.com", "Lucholda36")
+    siete = bcchapi.Siete(email, password)
 
     hoy = datetime.today().date() #Obtiene la fecha de hoy, sin la hora.
     inicio = (hoy - timedelta(days=7)).strftime("%Y-%m-%d") #Calcula la fecha de hace 7 días
