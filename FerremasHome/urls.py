@@ -8,7 +8,7 @@ urlpatterns = [
     path('registro/', views.add_cliente, name='registro'),
     path('add_producto/', views.add_product, name='add_producto'),
     path('login/', views.iniciar_sesion, name='iniciar_sesion'),
-    path('', views.home, name = 'home'),
+    path('', views.home, name='home'),
     path('logout/', views.logout, name='logout'),
     path('admin_login/', views.admin_login, name='admin_login'),
     path('herr_manuales/', views.herr_manuales, name='herr_manuales'),
@@ -33,6 +33,11 @@ urlpatterns = [
     path('detalle_producto/<int:id>/', API.detalle_producto, name="detalle_producto"),
     path('categoria_prod/', API.categoria_prod, name="categoria_prod"),
     path('stock_sucursal/<int:id>/', API.stock_sucursal, name="stock_sucursal"),
-    path('contacto_usuario/', views.contacto_usuario, name="contacto_usuario" ),
+    path('contacto_usuario/', views.contacto_usuario, name="contacto_usuario"),
     path('marcar_leido', views.marcar_leido, name="marcar_leido")
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+# Permite servir archivos estáticos y multimedia con DEBUG=False en local
+if not settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,143 @@
+/* Botón de volver */
+.btn-back {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1050;
+}
+
+/* Fondo general del sitio */
+body {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* Hover para tarjetas de producto */
+.card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+/* Hover en texto debajo de íconos */
+a:hover .fw-semibold {
+  color: #0d6efd; /* Azul Bootstrap */
+}
+
+/* Hover en íconos */
+a:hover img {
+  transform: scale(1.1);
+  transition: transform 0.3s ease;
+}
+
+/* Sombra general suave para contenedores */
+.shadow-box {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background-color: white;
+  transition: transform 0.2s ease-in-out;
+}
+
+.shadow-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+/* Carrusel */
+#ferremasCarousel img {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Contenedor de categorías destacadas */
+.category-box {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 30px 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Tarjetas de productos refinadas */
+.card.shadow-sm {
+  transition: transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.card.shadow-sm:hover {
+  transform: scale(1.015);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Botones */
+.btn {
+  transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-back {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1050;
+}
+
+/* Estilo principal del login */
+.login-card {
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.15);
+  max-width: 850px;
+  width: 100%;
+}
+
+/* Imagen del login */
+.login-image {
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Enlace administrador */
+.admin-link {
+  font-size: 0.85rem;
+  color: #6c757d;
+  opacity: 0.6;
+  text-decoration: none;
+}
+
+.admin-link:hover {
+  opacity: 1;
+  color: #0d6efd;
+}
+.object-fit-cover {
+  object-fit: cover;
+}
+/* Contenedor de la imagen en login */
+.login-img-container {
+  width: 350px;
+  height: auto;
+  overflow: hidden;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+}
+
+/* Imagen del login corregida */
+.login-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+}
+
+/* Ocultar imagen en pantallas pequeñas */
+@media (max-width: 768px) {
+  .login-img-container {
+    display: none;
+  }
+}
