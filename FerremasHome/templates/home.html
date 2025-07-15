@@ -8,7 +8,12 @@
     <div class="carousel-item active">
       <img src="{% static 'fotos/foto1.jpg' %}" class="d-block w-100" style="height: 500px; object-fit: cover;" alt="Slide 1">
       <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded p-3">
-        <h2>¡Bienvenido a FERREMAS!</h2>
+        <h2>{% if request.session.usuario_id or request.session.admin_id %}
+              Bienvenid@ a FERREMAS, {{ nombre }}
+            {% else %}
+              Bienvenido/a a FERREMAS
+            {% endif %}
+        </h2>
         <p>Tu ferretería online de confianza.</p>
       </div>
     </div>
@@ -85,14 +90,6 @@
       <a href="{% url 'home' %}" class="btn btn-outline-secondary">Limpiar</a>
     {% endif %}
   </form>
-
-  <h2 class="mb-4 text-center">
-    {% if request.session.usuario_id or request.session.admin_id %}
-      Bienvenido, {{ nombre }}
-    {% else %}
-      Productos Destacados
-    {% endif %}
-  </h2>
 
   <!-- Lista de productos -->
   <div class="row row-cols-1 row-cols-md-3 g-4">

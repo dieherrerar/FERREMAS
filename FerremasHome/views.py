@@ -66,7 +66,9 @@ def add_cliente(request):
                                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                                     """
                                     cursor.execute(sql, [pnombre, snombre, apaterno, amaterno, rut_int, correo, hashed_pw, dv])
-                    
+                                # Iniciar sesión automáticamente
+                                request.session['usuario_id'] = rut_int
+                                request.session['nombre_usuario'] = pnombre
                                 return redirect('home')
                             except IntegrityError as e:
                                 return render(request, 'registro.html', {'mensaje': 'Error al registrar el cliente, por favor intente de nuevo', 'datos': datos_formulario})

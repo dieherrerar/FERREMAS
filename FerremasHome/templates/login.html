@@ -10,6 +10,16 @@
   <link href="{% static 'css/style.css' %}" rel="stylesheet" />
 </head>
 <body>
+  <!-- Overlay de loading oculto por defecto -->
+  <div id="loadingOverlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.8);z-index:9999;justify-content:center;align-items:center;">
+    <div>
+      <div style="border:8px solid #f3f3f3;border-top:8px solid #3498db;border-radius:50%;width:80px;height:80px;animation:spin 1s linear infinite;"></div>
+      <div style="margin-top:20px;font-size:1.2em;color:#555;text-align:center;">Iniciando sesión, por favor espera...</div>
+    </div>
+    <style>
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+  </div>
 
 <a href="{% url 'home' %}" class="btn btn-light btn-back">
   <i class="bi bi-arrow-left"></i> Volver
@@ -27,7 +37,7 @@
     <div class="p-4 flex-grow-1 d-flex align-items-center justify-content-center">
       <div style="width: 100%; max-width: 350px;">
         <h2 class="text-center mb-4">Iniciar Sesión</h2>
-        <form method="POST">
+        <form method="POST" id="loginForm">
           {% csrf_token %}
           <div class="mb-3">
             <label for="correo" class="form-label">Correo electrónico</label>
@@ -43,7 +53,7 @@
             <p class="text-danger">{{ error }}</p>
           {% endif %}
 
-          <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+          <button type="submit" class="btn btn-primary w-100" id="loginBtn">Iniciar Sesión</button>
 
           <div class="d-flex align-items-center my-3">
             <hr class="flex-grow-1" />
@@ -55,6 +65,12 @@
 
           <div class="text-center mt-2">
             <a href="{% url 'admin_login' %}" class="admin-link">Ingresar como administrador</a>
+        </form>
+        <script>
+          document.getElementById('loginForm').addEventListener('submit', function(e) {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+          });
+        </script>
           </div>
         </form>
       </div>
